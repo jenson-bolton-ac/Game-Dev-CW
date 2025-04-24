@@ -64,6 +64,7 @@ void StartMenu::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 {
 }
 
-void StartMenu::CreateGUI() {
-
+void StartMenu::CreateGUI() 
+{
+	
 }
