@@ -25,7 +25,7 @@ void GUIButton::Draw()
 	}
 
 	// compute rectangle corners
-	int x = mPosition.x, y = mPosition.y;
+	int x = mPosition.x-100, y = mPosition.y-20;
 	int w = mSize.x, h = mSize.y;
 	glBegin(GL_QUADS);
 	  glVertex2i(x, y);
@@ -48,7 +48,7 @@ void GUIButton::Draw()
 	int textWidth = (int)mText.length() * 9;   // match GUILabel font
 	int textHeight = 15;
 	int tx = x + (w - textWidth) / 2;
-	int ty = y + (h + textHeight) / 2;            // baseline
+	int ty = y + (h + textHeight - 20) / 2;            // baseline
 	glRasterPos2i(tx, ty);
 	for (char c : mText) {
 		glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
@@ -60,8 +60,8 @@ void GUIButton::OnMousePressed(int mx, int my, int button) {
 	if (button != 0) return;
 
 	// hit test
-	if (mx >= mPosition.x && mx <= mPosition.x + mSize.x &&
-		my >= mPosition.y && my <= mPosition.y + mSize.y)
+	if (mx >= mPosition.x - 100 && mx <= mPosition.x - 100 + mSize.x &&
+		my >= mPosition.y - 20 && my <= mPosition.y - 20 + mSize.y)
 	{
 		if (mCallback) mCallback();
 	}
