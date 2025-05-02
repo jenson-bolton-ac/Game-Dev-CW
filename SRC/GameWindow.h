@@ -26,9 +26,12 @@ public:
 
 	void SetDisplay(GameDisplay* w);
 	GameDisplay* GetDisplay();
+	GameDisplay* GetPreviousDisplay() const { return mPreviousDisplay; }
 
 protected:
 	static const int ZOOM_LEVEL;
+
+	GameDisplay* mPreviousDisplay = nullptr;
 
 	GameWorld* mWorld;
 	GameDisplay* mDisplay;

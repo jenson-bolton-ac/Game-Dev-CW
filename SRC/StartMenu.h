@@ -5,6 +5,8 @@
 #include "GameSession.h"
 #include "GUIButton.h"
 #include "GUIContainer.h"
+#include "GUIIcon.h"
+#include "GUILabel.h"
 #include "IMouseListener.h"
 #include <vector>
 
@@ -37,11 +39,20 @@ public:
 	void OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object);
 
 private:
+	// Main menu
+	shared_ptr<GUIContainer> mMainMenuContainer;
 	int mWindowHeight;
 	int mWindowWidth;
 
 	vector<shared_ptr<GUIButton>> mButtons;
 	GUIContainer* mContainer;
+
+	// Instructions menu
+	shared_ptr<GUIContainer> mInstructionsContainer;
+	bool mShowingInstructions = false;
+
+	void ShowInstructions();
+	void HideInstructions();
 
 	void CreateGUI();
 };

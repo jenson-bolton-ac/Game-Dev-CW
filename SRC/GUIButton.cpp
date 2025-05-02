@@ -1,5 +1,4 @@
 #include "GUIButton.h"
-#include "GUILabel.h"
 #include "GameUtil.h"
 
 GUIButton::GUIButton(const std::string& text, Callback cb)

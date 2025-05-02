@@ -66,7 +66,12 @@ void  GameWindow::OnWindowReshaped(int w, int h)
 void GameWindow::SetWorld(GameWorld* w) { mWorld = w; UpdateWorldSize(); }
 GameWorld* GameWindow::GetWorld() { return mWorld; }
 
-void GameWindow::SetDisplay(GameDisplay* d) { mDisplay = d; UpdateDisplaySize(); }
+void GameWindow::SetDisplay(GameDisplay* d)
+{
+	mPreviousDisplay = mDisplay;
+	mDisplay = d;
+	UpdateDisplaySize();
+}
 GameDisplay* GameWindow::GetDisplay() { return mDisplay; }
 
 void GameWindow::UpdateWorldSize()
