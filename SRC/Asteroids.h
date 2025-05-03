@@ -4,7 +4,9 @@
 #include "GameUtil.h"
 #include "GameSession.h"
 #include "GameStateManager.h"
+#include "GUIContainer.h"
 #include "IKeyboardListener.h"
+#include "IMouseListener.h"
 #include "IGameWorldListener.h"
 #include "IScoreListener.h" 
 #include "ScoreKeeper.h"
@@ -15,7 +17,7 @@ class GameObject;
 class Spaceship;
 class GUILabel;
 
-class Asteroids : public GameSession, public IKeyboardListener, public IGameWorldListener, public IScoreListener, public IPlayerListener
+class Asteroids : public GameSession, public IKeyboardListener, IMouseListener, public IGameWorldListener, public IScoreListener, public IPlayerListener
 {
 public:
 	Asteroids(int argc, char *argv[]);
@@ -30,6 +32,12 @@ public:
 	void OnKeyReleased(uchar key, int x, int y);
 	void OnSpecialKeyPressed(int key, int x, int y);
 	void OnSpecialKeyReleased(int key, int x, int y);
+
+	// Declaration of IMouseListener interface ////////////////////////////////
+
+	void OnMouseDragged(int x, int y);
+	void OnMouseButton(int button, int state, int x, int y);
+	void OnMouseMoved(int x, int y);
 
 	// Declaration of IScoreListener interface //////////////////////////////////
 
@@ -87,6 +95,16 @@ private:
 
 	ScoreKeeper mScoreKeeper;
 	Player mPlayer;
+
+	// Menu handling ////////////////////
+
+	shared_ptr<GUIContainer> mMenuContainer;
+	vector<shared_ptr<GUILabel>> mMenuLabels;
+	int mMenuSelection = 0;
+	bool mBonusesEnabled = true;
+
+	void UpdateMenuHighlight(); // Highlight all labels based on mMenuSelection
+	void ActivateMenuItem(int index); // Activate the currently selected menu item
 };
 
 #endif

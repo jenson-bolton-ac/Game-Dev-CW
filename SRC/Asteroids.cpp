@@ -84,6 +84,8 @@ void Asteroids::Start()
 
 	ChangeState(GameState::START_MENU); // Start in the menu
 
+	CreateStartMenu();
+
 	// Start the game
 	GameSession::Start();
 }
@@ -99,13 +101,26 @@ void Asteroids::Stop()
 
 void Asteroids::OnKeyPressed(uchar key, int x, int y)
 {
-	switch (key)
+	switch (mStateManager.GetState())
 	{
-	case ' ':
-		mSpaceship->Shoot();
+	case GameState::PLAYING:
+		switch (key)
+		{
+		case ' ':
+			mSpaceship->Shoot();
+			break;
+		default:
+			break;
+		}
 		break;
-	default:
+	
+	case GameState::START_MENU:
+		if (key == 13 || key == ' ') {   // Enter or Space
+			ActivateMenuItem(mMenuSelection);
+			return;
+		}
 		break;
+	default: break;
 	}
 }
 
@@ -113,21 +128,45 @@ void Asteroids::OnKeyReleased(uchar key, int x, int y) {}
 
 void Asteroids::OnSpecialKeyPressed(int key, int x, int y)
 {
-	switch (key)
+	switch (mStateManager.GetState())
 	{
-	// If up arrow key is pressed start applying forward thrust
-	case GLUT_KEY_UP: mSpaceship->Thrust(10); break;
-	// If left arrow key is pressed start rotating anti-clockwise
-	case GLUT_KEY_LEFT: mSpaceship->Rotate(90); break;
-	// If right arrow key is pressed start rotating clockwise
-	case GLUT_KEY_RIGHT: mSpaceship->Rotate(-90); break;
-	// Default case - do nothing
+	case GameState::PLAYING:
+		switch (key)
+		{
+			// If up arrow key is pressed start applying forward thrust
+		case GLUT_KEY_UP: mSpaceship->Thrust(10); break;
+			// If left arrow key is pressed start rotating anti-clockwise
+		case GLUT_KEY_LEFT: mSpaceship->Rotate(90); break;
+			// If right arrow key is pressed start rotating clockwise
+		case GLUT_KEY_RIGHT: mSpaceship->Rotate(-90); break;
+			// Default case - do nothing
+		default: break;
+		}
+		break;
+
+	case GameState::START_MENU:
+		switch (key) {
+		case GLUT_KEY_UP:
+			mMenuSelection = (mMenuSelection + mMenuLabels.size() - 1)
+				% mMenuLabels.size();
+			UpdateMenuHighlight();
+			break;
+		case GLUT_KEY_DOWN:
+			mMenuSelection = (mMenuSelection + 1) % mMenuLabels.size();
+			UpdateMenuHighlight();
+			break;
+		default:
+			break;
+		}
+		break;
 	default: break;
 	}
 }
 
 void Asteroids::OnSpecialKeyReleased(int key, int x, int y)
 {
+	if (mStateManager.GetState() != GameState::PLAYING) return;
+
 	switch (key)
 	{
 	// If up arrow key is released stop applying forward thrust
@@ -139,6 +178,40 @@ void Asteroids::OnSpecialKeyReleased(int key, int x, int y)
 	// Default case - do nothing
 	default: break;
 	} 
+}
+
+// PUBLIC INSTANCE METHODS IMPLEMENTING IMouseListener /////////////////////
+
+void Asteroids::OnMouseDragged(int x, int y)
+{
+}
+
+void Asteroids::OnMouseButton(int button, int state, int x, int y)
+{
+	if (mStateManager.GetState() == GameState::START_MENU &&
+		button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		ActivateMenuItem(mMenuSelection);
+	}
+}
+
+void Asteroids::OnMouseMoved(int x, int y)
+{
+	if (mStateManager.GetState() != GameState::START_MENU) return;
+
+	// Determine which label row the mouse is over by comparing y against each label's screen pos
+	// (here we ask each GUILabel for its absolute position & approximate height)
+	for (int i = 0; i < (int)mMenuLabels.size(); ++i) {
+		auto& lbl = mMenuLabels[i];
+		auto pos = lbl->GetPosition();          // from GUIComponent :contentReference[oaicite:6]{index=6}:contentReference[oaicite:7]{index=7}
+		int h = lbl->GetPreferredSize().y;      // fallback, or use font height constant
+		if (y >= pos.y && y <= pos.y + h) {
+			if (mMenuSelection != i) {
+				mMenuSelection = i;
+				UpdateMenuHighlight();
+			}
+			break;
+		}
+	}
 }
 
 
@@ -240,10 +313,75 @@ void Asteroids::OnPlayerKilled(int lives_left)
 }
 
 void Asteroids::CreateStartMenu() {
-	// Add start menu
+	CreateAsteroids(8);
+
+	mMenuContainer = make_shared<GUIContainer>();
+	mMenuContainer->SetSize(mGameDisplay->GetContainer()->GetSize());
+	mMenuContainer->SetBorder({ 50,50 });
+	mGameDisplay->GetContainer()->AddComponent(mMenuContainer, { 0.0f, 0.0f });
+
+	vector<string> entries = {
+		"Game Start",
+		string("Bonuses: ") + (mBonusesEnabled ? "On" : "Off"),
+		"Instructions",
+		"High-Scores",
+		"Quit"
+	};
+
+	mMenuLabels.clear();
+	for (int i = 0; i < (int)entries.size(); ++i) {
+		auto lbl = make_shared<GUILabel>(entries[i]);
+		lbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+		lbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+		// relative positions: x = 0.5 (centre); y = 0.7, 0.5, 0.3, 0.1
+		float y = 0.7f - i * 0.1f;
+		mMenuContainer->AddComponent(lbl, { 0.5f, y });
+		mMenuLabels.push_back(lbl);
+	}
+
+	mMenuSelection = 0;
+	UpdateMenuHighlight();
+}
+
+void Asteroids::UpdateMenuHighlight() {
+	for (int i = 0; i < (int)mMenuLabels.size(); ++i) {
+		// yellow for selected, white otherwise
+		mMenuLabels[i]->SetColor(i == mMenuSelection
+			? GLVector3f{ 1.0f,1.0f,0.0f }
+		: GLVector3f{ 1.0f,1.0f,1.0f });
+	}
+}
+
+void Asteroids::ActivateMenuItem(int index) {
+	switch (index) {
+	case 0:  // Game Start
+		ChangeState(GameState::PLAYING);
+		break;
+	case 1:  // Toggle Bonuses
+		mBonusesEnabled = !mBonusesEnabled;
+		mMenuLabels[1]->SetText(
+			string("Bonuses: ") + (mBonusesEnabled ? "On" : "Off"));
+		UpdateMenuHighlight();
+		break;
+	case 2:  // Instructions
+		ChangeState(GameState::SHOW_INSTRUCTIONS);
+		break;
+	case 3:  // High-Scores
+		ChangeState(GameState::SHOWING_HIGHSCORES);
+		break;
+	case 4: // Quit
+		this->Stop();
+		break;
+	}
 }
 
 void Asteroids::InitializeGameplay(shared_ptr<Asteroids> thisPtr) {
+	if (mMenuContainer) {
+		mGameDisplay->GetContainer()->RemoveComponent(mMenuContainer);
+		mMenuContainer.reset();
+		mMenuLabels.clear();
+	}
+
 	mGameWorld->AddListener(&mScoreKeeper);
 	mScoreKeeper.AddListener(thisPtr);
 	mGameWorld->AddObject(CreateSpaceship());
