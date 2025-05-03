@@ -65,6 +65,9 @@ private:
 	// Changing game states
 	void CreateStartMenu();
 	void InitializeGameplay(shared_ptr<Asteroids> this_ptr);
+	void CreateGameOverMenu();
+	void ShowHighScoreTable();
+	void ShowInstructions();
 
 	shared_ptr<Spaceship> mSpaceship;
 	shared_ptr<GUILabel> mScoreLabel;

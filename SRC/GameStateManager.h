@@ -11,7 +11,8 @@ enum class GameState {
     START_MENU,
     PLAYING,
     GAME_OVER,
-    SHOWING_HIGHSCORES
+    SHOWING_HIGHSCORES,
+    SHOW_INSTRUCTIONS
 };
 
 /**

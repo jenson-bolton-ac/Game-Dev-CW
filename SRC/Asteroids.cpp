@@ -61,13 +61,26 @@ void Asteroids::Start()
 	mPlayer.AddListener(thisPtr);*/
 
 	RegisterStateListener([thisPtr](GameState state) {
-		if (state == GameState::START_MENU) {
+		switch (state) {
+		case GameState::START_MENU:
 			thisPtr->CreateStartMenu();
-		}
-		else if (state == GameState::PLAYING) {
+			break;
+		case GameState::PLAYING:
 			thisPtr->InitializeGameplay(thisPtr);
+			break;
+		case GameState::GAME_OVER:
+			thisPtr->CreateGameOverMenu();
+			break;
+		case GameState::SHOWING_HIGHSCORES:
+			thisPtr->ShowHighScoreTable();
+			break;
+		case GameState::SHOW_INSTRUCTIONS:
+			thisPtr->ShowInstructions();
+			break;
+		default:
+			break;
 		}
-	});
+		});
 
 	ChangeState(GameState::START_MENU); // Start in the menu
 
@@ -238,4 +251,16 @@ void Asteroids::InitializeGameplay(shared_ptr<Asteroids> thisPtr) {
 	CreateGUI();
 	mGameWorld->AddListener(&mPlayer);
 	mPlayer.AddListener(thisPtr);
+}
+
+void Asteroids::CreateGameOverMenu() {
+	// Add death screen
+}
+
+void Asteroids::ShowHighScoreTable() {
+	// Add highscore table
+}
+
+void Asteroids::ShowInstructions() {
+	// Add instuctions
 }
