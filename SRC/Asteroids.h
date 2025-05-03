@@ -3,6 +3,7 @@
 
 #include "GameUtil.h"
 #include "GameSession.h"
+#include "GameStateManager.h"
 #include "IKeyboardListener.h"
 #include "IGameWorldListener.h"
 #include "IScoreListener.h" 
@@ -47,7 +48,24 @@ public:
 	// Override the default implementation of ITimerListener ////////////////////
 	void OnTimer(int value);
 
+	// Implementation of GameStateManager listeners ////////////////////
+
+	int RegisterStateListener(const GameStateManager::Listener& listener) { return mStateManager.AddListener(listener); }
+	void UnregisterStateListener(int listenerId) { mStateManager.RemoveListener(listenerId); }
+
 private:
+
+	// Handle the game state
+	void ChangeState(GameState newState) {
+		mStateManager.SetState(newState);
+	}
+
+	GameStateManager mStateManager;
+
+	// Changing game states
+	void CreateStartMenu();
+	void InitializeGameplay(shared_ptr<Asteroids> this_ptr);
+
 	shared_ptr<Spaceship> mSpaceship;
 	shared_ptr<GUILabel> mScoreLabel;
 	shared_ptr<GUILabel> mLivesLabel;

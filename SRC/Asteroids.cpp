@@ -40,7 +40,7 @@ void Asteroids::Start()
 	// Add this as a listener to the world and the keyboard
 	mGameWindow->AddKeyboardListener(thisPtr);
 
-	// Add a score keeper to the game world
+	/*// Add a score keeper to the game world
 	mGameWorld->AddListener(&mScoreKeeper);
 
 	// Add this class as a listener of the score keeper
@@ -58,7 +58,18 @@ void Asteroids::Start()
 	mGameWorld->AddListener(&mPlayer);
 
 	// Add this class as a listener of the player
-	mPlayer.AddListener(thisPtr);
+	mPlayer.AddListener(thisPtr);*/
+
+	RegisterStateListener([thisPtr](GameState state) {
+		if (state == GameState::START_MENU) {
+			thisPtr->CreateStartMenu();
+		}
+		else if (state == GameState::PLAYING) {
+			thisPtr->InitializeGameplay(thisPtr);
+		}
+	});
+
+	ChangeState(GameState::START_MENU); // Start in the menu
 
 	// Start the game
 	GameSession::Start();
@@ -215,5 +226,16 @@ void Asteroids::OnPlayerKilled(int lives_left)
 	mLivesLabel->SetText(lives_msg);
 }
 
+void Asteroids::CreateStartMenu() {
+	// Add start menu
+}
 
-
+void Asteroids::InitializeGameplay(shared_ptr<Asteroids> thisPtr) {
+	mGameWorld->AddListener(&mScoreKeeper);
+	mScoreKeeper.AddListener(thisPtr);
+	mGameWorld->AddObject(CreateSpaceship());
+	CreateAsteroids(10);
+	CreateGUI();
+	mGameWorld->AddListener(&mPlayer);
+	mPlayer.AddListener(thisPtr);
+}
