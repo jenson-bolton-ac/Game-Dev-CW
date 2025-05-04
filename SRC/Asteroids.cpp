@@ -99,6 +99,7 @@ void Asteroids::Start()
 
 
 	int delay = 10000 + (rand() % 10001);
+	srand(static_cast<unsigned>(time(nullptr)));
 	SetTimer(delay, SPAWN_BLACKHOLE);
 
 	// Start the game
@@ -301,39 +302,51 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 
 void Asteroids::OnTimer(int value)
 {
-	if (value == CREATE_NEW_PLAYER) {
+	if (value == CREATE_NEW_PLAYER)
+	{
+		mSpaceship->Reset();
+		mGameWorld->AddObject(mSpaceship);
 	}
 	else if (value == START_NEXT_LEVEL) {
+		mLevel++;
+		int num_asteroids = 10 + 2 * mLevel;
+		CreateAsteroids(num_asteroids);
 	}
 	else if (value == SPAWN_BLACKHOLE) {
-		float x = ((rand() / float(RAND_MAX)) - 0.5f) * mGameWorld->GetWidth();   
-		float y = ((rand() / float(RAND_MAX)) - 0.5f) * mGameWorld->GetHeight();
+			float hw = mGameWorld->GetWidth() * 0.5f;
+			float hh = mGameWorld->GetHeight() * 0.5f;
+			float x = (rand() / float(RAND_MAX)) * 2 * hw - hw;
+			float y = (rand() / float(RAND_MAX)) * 2 * hh - hh;
 
-		auto hole = std::make_shared<BlackHole>(
-			GLVector3f{ x, y, 0.0f },   // centre
-			/*radius=*/100.0f,
-			/*strength=*/500.0f,
-			/*duration_ms=*/5000
-		);
+			const float holeRadius = 50.0f;
+			const float holeStrength = 400.0f;
+			const int   holeDuration = 5000;
 
-		hole->SetBoundingShape(
-			std::make_shared<BoundingSphere>(hole->GetThisPtr(), 100.0f)
-		);
+			auto hole = std::make_shared<BlackHole>(
+				GLVector3f{ x,y,0.0f },
+				holeRadius,
+				holeStrength,
+				holeDuration
+			);
+			hole->SetBoundingShape(
+				std::make_shared<BoundingSphere>(hole->GetThisPtr(), holeRadius)
+			);
 
-		Animation* bhAnim = AnimationManager::GetInstance().GetAnimationByName("blackhole");
-		auto bhSprite = std::make_shared<Sprite>(
-			bhAnim->GetWidth(), bhAnim->GetHeight(), bhAnim
-		);
-		bhSprite->SetLoopAnimation(true);
-		hole->SetSprite(bhSprite);
-		hole->SetScale(0.5f);
-		hole->Reset();
+			Animation* bhAnim = AnimationManager::GetInstance()
+				.GetAnimationByName("blackhole");
+			auto bhSprite = std::make_shared<Sprite>(
+				bhAnim->GetWidth(), bhAnim->GetHeight(), bhAnim
+			);
+			bhSprite->SetLoopAnimation(true);
+			hole->SetSprite(bhSprite);
+			hole->SetScale(0.5f);
+			hole->Reset();
 
-		if (mGameWorld) mGameWorld->AddObject(hole);
+			mGameWorld->AddObject(hole);
 
-		int nextDelay = 10000 + (rand() % 10001);
-		SetTimer(nextDelay, SPAWN_BLACKHOLE);
-	}
+			SetTimer(10000 + (rand() % 10001), SPAWN_BLACKHOLE);
+		}
+
 }
 
 // PROTECTED INSTANCE METHODS /////////////////////////////////////////////////
