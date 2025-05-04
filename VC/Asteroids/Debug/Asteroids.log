@@ -1,3 +1,29 @@
 ﻿cl : command line  warning D9035: option 'Gm' has been deprecated and will be removed in a future release
-  Asteroids.cpp
-LINK : fatal error LNK1168: cannot open ..\..\bin\Asteroids.exe for writing
+  BlackHoleBonus.cpp
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(9,12): error C2061: syntax error: identifier 'uint'
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(11,7): error C3646: 'GetWidth': unknown override specifier
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(11,15): error C2059: syntax error: '('
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(11,18): error C2334: unexpected token(s) preceding '{'; skipping apparent function body
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(12,7): error C3646: 'GetHeight': unknown override specifier
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(12,16): error C2059: syntax error: '('
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(12,19): error C2334: unexpected token(s) preceding '{'; skipping apparent function body
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(13,7): error C3646: 'GetFrameTextureID': unknown override specifier
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(13,24): error C2059: syntax error: '('
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(13,39): error C2334: unexpected token(s) preceding '{'; skipping apparent function body
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(14,7): error C3646: 'GetNumFrames': unknown override specifier
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(14,19): error C2059: syntax error: '('
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(14,28): error C2334: unexpected token(s) preceding '{'; skipping apparent function body
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(16,7): error C3646: 'mWidth': unknown override specifier
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(16,2): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(17,7): error C3646: 'mHeight': unknown override specifier
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(17,2): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(18,6): error C2143: syntax error: missing ';' before '*'
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(18,2): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(18,17): error C2238: unexpected token(s) preceding ';'
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(19,7): error C3646: 'mNumFrames': unknown override specifier
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\Animation.h(19,2): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\BlackHoleBonus.cpp(31,22): error C2039: 'GetWidth': is not a member of 'Animation'
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\BlackHoleBonus.cpp(32,22): error C2039: 'GetHeight': is not a member of 'Animation'
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\BlackHoleBonus.cpp(30,22): error C2672: 'make_shared': no matching overloaded function found
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\BlackHoleBonus.cpp(35,5): error C3536: 'bh_sprite': cannot be used before it is initialized
+C:\Users\jenso\OneDrive - City, University of London\Desktop\game-tech\Game-Dev-CW\SRC\BlackHoleBonus.cpp(36,11): error C2664: 'void GameObject::SetSprite(std::shared_ptr<Sprite>)': cannot convert argument 1 from 'int' to 'std::shared_ptr<Sprite>'

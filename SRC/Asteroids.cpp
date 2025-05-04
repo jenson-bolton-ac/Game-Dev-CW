@@ -2,6 +2,7 @@
 #include "Asteroids.h"
 #include "Animation.h"
 #include "AnimationManager.h"
+#include "BlackHoleBonus.h"
 #include "Explosion.h"
 #include "GameUtil.h"
 #include "GameWindow.h"
@@ -14,6 +15,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <cstdlib>
 
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
@@ -56,6 +58,15 @@ void Asteroids::Start()
 		128, 8192, 128, 128, "asteroid1_fs.png");
 	Animation* spaceship_anim = AnimationManager::GetInstance().CreateAnimationFromFile("spaceship",
 		128, 128, 128, 128, "spaceship_fs.png");
+	Animation* bh_anim = AnimationManager::GetInstance()
+		.CreateAnimationFromFile(
+			"blackhole",      
+			32,              
+			32,              
+			32,              
+			512,              
+			"blackhole.png"   
+		);
 
 	RegisterStateListener([thisPtr](GameState state) {
 		switch (state) {
@@ -274,6 +285,22 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 		{
 			SetTimer(500, START_NEXT_LEVEL);
 		}
+
+		if (mBonusesEnabled) {
+			// 10% chance to drop a black-hole bonus
+			if ((rand() % 100) < 10) {
+				auto bonus = make_shared<BlackHoleBonus>(10000);
+				bonus->SetPosition(object->GetPosition());
+
+				// **Now** that `bonus` is managed by a shared_ptr, it's safe to do this:
+				bonus->SetBoundingShape(
+					make_shared<BoundingSphere>(bonus->GetThisPtr(), 5.0f)
+				);
+
+				mGameWorld->AddObject(bonus);
+			}
+		}
+
 
 	}
 }
