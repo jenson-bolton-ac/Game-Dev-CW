@@ -25,10 +25,17 @@ public:
 	void SetBulletShape(shared_ptr<Shape> bullet_shape) { mBulletShape = bullet_shape; }
 
 	bool CollisionTest(shared_ptr<GameObject> o);
-	void OnCollision(const GameObjectList &objects);
+	void OnCollision(const GameObjectList& objects);
+	void ActivateDualShot(int duration_ms) {
+		mDualShotActive = true;
+		mDualShotTimeLeft = duration_ms;
+	}
+
 
 private:
 	float mThrust;
+	bool  mDualShotActive = false;
+	int   mDualShotTimeLeft = 0;  // milliseconds
 
 	shared_ptr<Shape> mSpaceshipShape;
 	shared_ptr<Shape> mThrusterShape;

@@ -10,6 +10,7 @@
 #include "GameWorld.h"
 #include "GameDisplay.h"
 #include "Spaceship.h"
+#include "Shape.h"   
 #include "BoundingShape.h"
 #include "BoundingSphere.h"
 #include "GUILabel.h"
@@ -17,6 +18,7 @@
 #include <fstream>
 #include <algorithm>
 #include <cstdlib>
+#include "WeaponUpgradeBonus.h"
 
 static const int SPAWN_BLACKHOLE = 1001;
 
@@ -294,7 +296,24 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 			SetTimer(500, START_NEXT_LEVEL);
 		}
 
+		// --- Weapon-Upgrade drop (10% chance) ---
+		if (mBonusesEnabled && (rand() % 100) < 10) {
+			auto bonus = std::make_shared<WeaponUpgradeBonus>(10000);
+			mGameWorld->AddObject(bonus);
+			bonus->SetPosition(object->GetPosition());
+			bonus->SetBoundingShape(
+				std::make_shared<BoundingSphere>(bonus->GetThisPtr(), 5.0f)
+			);
+			bonus->SetShape(
+				std::make_shared<Shape>("square.shape")
+			);
+			mGameWorld->AddObject(bonus);
+		}
 
+		mAsteroidCount--;
+		if (mAsteroidCount <= 0) {
+			SetTimer(500, START_NEXT_LEVEL);
+		}
 	}
 }
 

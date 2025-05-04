@@ -36,8 +36,17 @@ Spaceship::~Spaceship(void)
 /** Update this spaceship. */
 void Spaceship::Update(int t)
 {
-	// Call parent update function
+
 	GameObject::Update(t);
+
+	
+	if (mDualShotActive) {
+		mDualShotTimeLeft -= t;
+		if (mDualShotTimeLeft <= 0) {
+			mDualShotActive = false;
+		}
+	}
+
 }
 
 /** Render this spaceship. */
@@ -90,6 +99,19 @@ void Spaceship::Shoot(void)
 	// Add the new bullet to the game world
 	mWorld->AddObject(bullet);
 
+	// --- Rear shot if dual-shot is active ---
+    if (mDualShotActive) {
+        float backAngle = mAngle + 180.0f;
+        GLVector3f backHead(cos(DEG2RAD*backAngle), sin(DEG2RAD*backAngle), 0);
+        backHead.normalize();
+        GLVector3f posB = mPosition + backHead * 4.0f;
+        GLVector3f velB = mVelocity + backHead * bullet_speed;
+
+        auto bulletB = std::make_shared<Bullet>(posB, velB, mAcceleration, backAngle, 0, 2000);
+        bulletB->SetBoundingShape(std::make_shared<BoundingSphere>(bulletB->GetThisPtr(), 2.0f));
+        bulletB->SetShape(mBulletShape);
+        mWorld->AddObject(bulletB);
+    }
 }
 
 bool Spaceship::CollisionTest(shared_ptr<GameObject> o)

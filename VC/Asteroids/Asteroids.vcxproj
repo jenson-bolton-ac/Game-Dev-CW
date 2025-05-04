@@ -113,6 +113,7 @@
     <ClCompile Include="..\..\SRC\GameStateManager.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\Spaceship.cpp" />
+    <ClCompile Include="..\..\SRC\WeaponUpgradeBonus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\SRC\Asteroid.h" />
@@ -123,6 +124,7 @@
     <ClInclude Include="..\..\src\Bullet.h" />
     <ClInclude Include="..\..\SRC\Explosion.h" />
     <ClInclude Include="..\..\SRC\GameStateManager.h" />
+    <ClInclude Include="..\..\SRC\WeaponUpgradeBonus.h" />
     <ClInclude Include="..\..\SRC\IPlayerListener.h" />
     <ClInclude Include="..\..\SRC\IScoreListener.h" />
     <ClInclude Include="..\..\SRC\Player.h" />
