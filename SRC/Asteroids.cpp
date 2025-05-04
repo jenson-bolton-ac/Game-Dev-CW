@@ -135,6 +135,33 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 			return;
 		}
 		break;
+	case GameState::GAME_OVER:
+		// Backspace
+		if (key == 8 && !mCurrentTag.empty()) {
+			mCurrentTag.pop_back();
+		}
+		// Allowed Characters
+		else if (mCurrentTag.size() < MAX_TAG_LEN) {
+			char c = static_cast<char>(key);
+			if ((c >= 'a' && c <= 'z') ||
+				(c >= '0' && c <= '9') ||
+				c == '_')
+			{
+				mCurrentTag.push_back(c);
+			}
+		}
+		// Update text
+		if (mTagLabel) mTagLabel->SetText(mCurrentTag);
+
+		// submit
+		if (key == 13) {
+			if (mCurrentTag.empty()) mCurrentTag = "Anon";
+			// append file
+			ofstream out("highscore.txt", ios::app);
+			out << mCurrentTag << " " << mScore << "\n";
+			out.close();
+			ChangeState(GameState::SHOWING_HIGHSCORES);
+		}
 	default: break;
 	}
 }
@@ -172,6 +199,13 @@ void Asteroids::OnSpecialKeyPressed(int key, int x, int y)
 			break;
 		default:
 			break;
+		}
+		break;
+
+	case GameState::GAME_OVER:
+		if (key == GLUT_KEY_UP || key == GLUT_KEY_DOWN) {
+			mMenuSelection = 0;
+			UpdateMenuHighlight();
 		}
 		break;
 	default: break;
@@ -316,6 +350,8 @@ void Asteroids::OnScoreChanged(int score)
 	// Get the score message as a string
 	std::string score_msg = msg_stream.str();
 	mScoreLabel->SetText(score_msg);
+	// for game over screen
+	mScore = score;
 }
 
 void Asteroids::OnPlayerKilled(int lives_left)
@@ -341,6 +377,12 @@ void Asteroids::CreateStartMenu() {
 	}
 	else {
 		CreateAsteroids(8);
+	}
+
+	// Add asteroids if there are none
+	// State occurs after game over
+	if (asteroids.empty()) {
+		CreateAsteroids(40);
 	}
 
 	mMenuContainer = make_shared<GUIContainer>();
@@ -426,12 +468,61 @@ void Asteroids::InitializeGameplay(shared_ptr<Asteroids> thisPtr) {
 }
 
 void Asteroids::CreateGameOverMenu() {
-	// Add death screen
+	// clear old GUI
+	if (mMenuContainer) {
+		mGameDisplay->GetContainer()->RemoveComponent(mMenuContainer);
+		mMenuContainer.reset();
+		mMenuLabels.clear();
+	}
+
+	for (auto& a : asteroids) {
+		mGameWorld->RemoveObject(a);
+	}
+	asteroids.clear(); // remove menu asteroids
+
+	// container framing
+	mMenuContainer = make_shared<GUIContainer>();
+	mMenuContainer->SetSize(mGameDisplay->GetContainer()->GetSize());
+	mMenuContainer->SetBorder({ 50,50 });
+	mGameDisplay->GetContainer()->AddComponent(mMenuContainer, { 0.0f,0.0f });
+
+	// Heading
+	auto overLbl = make_shared<GUILabel>("GAME OVER");
+	overLbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	overLbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_TOP);
+	mMenuContainer->AddComponent(overLbl, { 0.5f, 0.85f });
+
+	// Prompt
+	auto prompt = make_shared<GUILabel>("Enter your tag:");
+	prompt->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	prompt->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+	mMenuContainer->AddComponent(prompt, { 0.5f, 0.65f });
+
+	// editable tag
+	mCurrentTag.clear();
+	auto tagLbl = make_shared<GUILabel>("");
+	tagLbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	tagLbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+	mMenuContainer->AddComponent(tagLbl, { 0.5f, 0.55f });
+	mTagLabel = tagLbl;
+
+	// Submit btn
+	auto submitLbl = make_shared<GUILabel>("Submit");
+	submitLbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	submitLbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+	mMenuContainer->AddComponent(submitLbl, { 0.5f, 0.35f });
+
+	// Submit navigation
+	mMenuLabels = { submitLbl };
+	mMenuSelection = 0;
+	UpdateMenuHighlight();
+
+	mMenuLabels.push_back(tagLbl);
 }
 
 vector<pair<string, int>> Asteroids::LoadHighScores() const {
 	vector<pair<string, int>> results;
-	ifstream in("highscores.txt");
+	ifstream in("highscore.txt");
 	if (!in.is_open()) return results;
 
 	string tag;
@@ -459,13 +550,13 @@ void Asteroids::ShowHighScoreTable() {
 	}
 
 	// container framing
-	mMenuContainer = std::make_shared<GUIContainer>();
+	mMenuContainer = make_shared<GUIContainer>();
 	mMenuContainer->SetSize(mGameDisplay->GetContainer()->GetSize());
 	mMenuContainer->SetBorder({ 50,50 });
 	mGameDisplay->GetContainer()->AddComponent(mMenuContainer, { 0.0f,0.0f });
 
 	// header
-	auto header = std::make_shared<GUILabel>("High-Scores");
+	auto header = make_shared<GUILabel>("High-Scores");
 	header->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
 	header->SetVerticalAlignment(GUIComponent::GUI_VALIGN_TOP);
 	mMenuContainer->AddComponent(header, { 0.5f, 0.9f });
@@ -473,16 +564,16 @@ void Asteroids::ShowHighScoreTable() {
 	// load and display the entries
 	auto scores = LoadHighScores();
 	for (int i = 0; i < 10; ++i) {
-		std::string text;
+		string text;
 		if (i < (int)scores.size()) {
-			text = std::to_string(i + 1) + ". "
+			text = to_string(i + 1) + ". "
 				+ scores[i].first + " – "
-				+ std::to_string(scores[i].second);
+				+ to_string(scores[i].second);
 		}
 		else {
-			text = std::to_string(i + 1) + ". ——";
+			text = to_string(i + 1) + ". ——";
 		}
-		auto lbl = std::make_shared<GUILabel>(text);
+		auto lbl = make_shared<GUILabel>(text);
 		lbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
 		lbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
 		float y = 0.8f - i * 0.07f;
@@ -490,7 +581,7 @@ void Asteroids::ShowHighScoreTable() {
 	}
 
 	// “Back” button
-	auto backLbl = std::make_shared<GUILabel>("Back");
+	auto backLbl = std::make_shared<GUILabel>("Main Menu");
 	backLbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
 	backLbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
 	mMenuContainer->AddComponent(backLbl, { 0.5f, 0.05f });

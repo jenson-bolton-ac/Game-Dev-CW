@@ -81,6 +81,12 @@ private:
 	shared_ptr<GUILabel> mScoreLabel;
 	shared_ptr<GUILabel> mLivesLabel;
 
+	// Game over
+	string mCurrentTag;
+	shared_ptr<GUILabel> mTagLabel;
+	static const size_t MAX_TAG_LEN = 12;
+	int mScore;
+
 	uint mLevel;
 	uint mAsteroidCount;
 
@@ -107,7 +113,7 @@ private:
 
 	void UpdateMenuHighlight(); // Highlight all labels based on mMenuSelection
 	void ActivateMenuItem(int index); // Activate the currently selected menu item
-	vector<pair<string, int>> LoadHighScores() const;
+	vector<pair<string, int>> LoadHighScores() const; // Load the highscore
 };
 
 #endif
