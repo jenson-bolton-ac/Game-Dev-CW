@@ -1,10 +1,11 @@
+#include "GameUtil.h"
+#include <memory>
 #include "Animation.h"
 #include "AnimationManager.h"
 #include "BlackHoleBonus.h"
 #include "BlackHole.h"
 #include "BoundingSphere.h"   // for pickup’s collision shape
 #include "GameWorld.h"
-#include "GameUtil.h"
 #include "Sprite.h"
 
 BlackHoleBonus::BlackHoleBonus(float lifetime_ms)
@@ -14,7 +15,7 @@ BlackHoleBonus::BlackHoleBonus(float lifetime_ms)
 
 void BlackHoleBonus::OnCollision(const GameObjectList& objects) {
     // Construct the hole
-    auto hole = std::make_shared<BlackHole>(
+    auto hole = make_shared<BlackHole>(
         GetPosition(),
         /*radius=*/100.0f,
         /*strength=*/500.0f,
@@ -36,6 +37,8 @@ void BlackHoleBonus::OnCollision(const GameObjectList& objects) {
     hole->SetSprite(bh_sprite);
     hole->SetScale(0.5f);
 
+    hole->Reset();
+
     // Add it to the world
     if (mWorld) {
         mWorld->AddObject(hole);
@@ -43,4 +46,5 @@ void BlackHoleBonus::OnCollision(const GameObjectList& objects) {
 
     // Remove the bonus itself
     Bonus::OnCollision(objects);
+
 }

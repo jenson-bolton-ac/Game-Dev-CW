@@ -2,6 +2,7 @@
 #include "Asteroids.h"
 #include "Animation.h"
 #include "AnimationManager.h"
+#include "BlackHole.h"
 #include "BlackHoleBonus.h"
 #include "Explosion.h"
 #include "GameUtil.h"
@@ -16,6 +17,8 @@
 #include <fstream>
 #include <algorithm>
 #include <cstdlib>
+
+static const int SPAWN_BLACKHOLE = 1001;
 
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
@@ -61,10 +64,10 @@ void Asteroids::Start()
 	Animation* bh_anim = AnimationManager::GetInstance()
 		.CreateAnimationFromFile(
 			"blackhole",      
-			32,              
-			32,              
-			32,              
+			64,              
 			512,              
+			64,              
+			64,              
 			"blackhole.png"   
 		);
 
@@ -93,6 +96,10 @@ void Asteroids::Start()
 	ChangeState(GameState::START_MENU); // Start in the menu
 
 	CreateStartMenu();
+
+
+	int delay = 10000 + (rand() % 10001);
+	SetTimer(delay, SPAWN_BLACKHOLE);
 
 	// Start the game
 	GameSession::Start();
@@ -286,21 +293,6 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 			SetTimer(500, START_NEXT_LEVEL);
 		}
 
-		if (mBonusesEnabled) {
-			// 10% chance to drop a black-hole bonus
-			if ((rand() % 100) < 10) {
-				auto bonus = make_shared<BlackHoleBonus>(10000);
-				bonus->SetPosition(object->GetPosition());
-
-				// **Now** that `bonus` is managed by a shared_ptr, it's safe to do this:
-				bonus->SetBoundingShape(
-					make_shared<BoundingSphere>(bonus->GetThisPtr(), 5.0f)
-				);
-
-				mGameWorld->AddObject(bonus);
-			}
-		}
-
 
 	}
 }
@@ -309,20 +301,39 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 
 void Asteroids::OnTimer(int value)
 {
-	if (value == CREATE_NEW_PLAYER)
-	{
-		mSpaceship->Reset();
-		mGameWorld->AddObject(mSpaceship);
+	if (value == CREATE_NEW_PLAYER) {
 	}
-
-	if (value == START_NEXT_LEVEL)
-	{
-		mLevel++;
-		int num_asteroids = 10 + 2 * mLevel;
-		CreateAsteroids(num_asteroids);
-
+	else if (value == START_NEXT_LEVEL) {
 	}
+	else if (value == SPAWN_BLACKHOLE) {
+		float x = ((rand() / float(RAND_MAX)) - 0.5f) * mGameWorld->GetWidth();   
+		float y = ((rand() / float(RAND_MAX)) - 0.5f) * mGameWorld->GetHeight();
 
+		auto hole = std::make_shared<BlackHole>(
+			GLVector3f{ x, y, 0.0f },   // centre
+			/*radius=*/100.0f,
+			/*strength=*/500.0f,
+			/*duration_ms=*/5000
+		);
+
+		hole->SetBoundingShape(
+			std::make_shared<BoundingSphere>(hole->GetThisPtr(), 100.0f)
+		);
+
+		Animation* bhAnim = AnimationManager::GetInstance().GetAnimationByName("blackhole");
+		auto bhSprite = std::make_shared<Sprite>(
+			bhAnim->GetWidth(), bhAnim->GetHeight(), bhAnim
+		);
+		bhSprite->SetLoopAnimation(true);
+		hole->SetSprite(bhSprite);
+		hole->SetScale(0.5f);
+		hole->Reset();
+
+		if (mGameWorld) mGameWorld->AddObject(hole);
+
+		int nextDelay = 10000 + (rand() % 10001);
+		SetTimer(nextDelay, SPAWN_BLACKHOLE);
+	}
 }
 
 // PROTECTED INSTANCE METHODS /////////////////////////////////////////////////
