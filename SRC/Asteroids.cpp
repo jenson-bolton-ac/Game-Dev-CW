@@ -312,7 +312,7 @@ void Asteroids::OnTimer(int value)
 		int num_asteroids = 10 + 2 * mLevel;
 		CreateAsteroids(num_asteroids);
 	}
-	else if (value == SPAWN_BLACKHOLE) {
+	else if (value == SPAWN_BLACKHOLE && mBonusesEnabled) {
 			float hw = mGameWorld->GetWidth() * 0.5f;
 			float hh = mGameWorld->GetHeight() * 0.5f;
 			float x = (rand() / float(RAND_MAX)) * 2 * hw - hw;
