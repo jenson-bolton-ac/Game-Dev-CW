@@ -2,6 +2,7 @@
 #include "Asteroids.h"
 #include "Animation.h"
 #include "AnimationManager.h"
+#include "Explosion.h"
 #include "GameUtil.h"
 #include "GameWindow.h"
 #include "GameWorld.h"
@@ -43,25 +44,18 @@ void Asteroids::Start()
 	// Add this as a listener to the world and the keyboard
 	mGameWindow->AddKeyboardListener(thisPtr);
 
-	/*// Add a score keeper to the game world
-	mGameWorld->AddListener(&mScoreKeeper);
-
-	// Add this class as a listener of the score keeper
-	mScoreKeeper.AddListener(thisPtr);
-
-	// Create a spaceship and add it to the world
-	mGameWorld->AddObject(CreateSpaceship());
-	// Create some asteroids and add them to the world
-	CreateAsteroids(10);
-
-	//Create the GUI
-	CreateGUI();
-
-	// Add a player (watcher) to the game world
-	mGameWorld->AddListener(&mPlayer);
-
-	// Add this class as a listener of the player
-	mPlayer.AddListener(thisPtr);*/
+	// Create an ambient light to show sprite textures
+	GLfloat ambient_light[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat diffuse_light[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
+	glEnable(GL_LIGHT0);
+	Animation* explosion_anim = AnimationManager::GetInstance().CreateAnimationFromFile("explosion",
+		64, 1024, 64, 64, "explosion_fs.png");
+	Animation* asteroid1_anim = AnimationManager::GetInstance().CreateAnimationFromFile("asteroid1",
+		128, 8192, 128, 128, "asteroid1_fs.png");
+	Animation* spaceship_anim = AnimationManager::GetInstance().CreateAnimationFromFile("spaceship",
+		128, 128, 128, 128, "spaceship_fs.png");
 
 	RegisterStateListener([thisPtr](GameState state) {
 		switch (state) {
@@ -268,6 +262,20 @@ void Asteroids::OnMouseMoved(int x, int y)
 
 void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 {
+	if (object->GetType() == GameObjectType("Asteroid"))
+	{
+		shared_ptr<GameObject> explosion = CreateExplosion();
+		explosion->SetPosition(object->GetPosition());
+		explosion->SetRotation(object->GetRotation());
+		mGameWorld->AddObject(explosion);
+
+		mAsteroidCount--;
+		if (mAsteroidCount <= 0)
+		{
+			SetTimer(500, START_NEXT_LEVEL);
+		}
+
+	}
 }
 
 // PUBLIC INSTANCE METHODS IMPLEMENTING ITimerListener ////////////////////////
@@ -284,6 +292,8 @@ void Asteroids::OnTimer(int value)
 	{
 		mLevel++;
 		int num_asteroids = 10 + 2 * mLevel;
+		CreateAsteroids(num_asteroids);
+
 	}
 
 }
@@ -295,29 +305,36 @@ shared_ptr<GameObject> Asteroids::CreateSpaceship()
 	// shared_ptrs of different types because GameWorld implements IRefCount
 	mSpaceship = make_shared<Spaceship>();
 	mSpaceship->SetBoundingShape(make_shared<BoundingSphere>(mSpaceship->GetThisPtr(), 4.0f));
-	shared_ptr<Shape> spaceship_shape = make_shared<Shape>("spaceship.shape");
-	shared_ptr<Shape> thruster_shape = make_shared<Shape>("thruster.shape");
 	shared_ptr<Shape> bullet_shape = make_shared<Shape>("bullet.shape");
-	mSpaceship->SetSpaceshipShape(spaceship_shape);
-	mSpaceship->SetThrusterShape(thruster_shape);
 	mSpaceship->SetBulletShape(bullet_shape);
-
+	Animation* anim_ptr = AnimationManager::GetInstance().GetAnimationByName("spaceship");
+	shared_ptr<Sprite> spaceship_sprite =
+		make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
+	mSpaceship->SetSprite(spaceship_sprite);
+	mSpaceship->SetScale(0.1f);
 	// Reset spaceship back to centre of the world
 	mSpaceship->Reset();
-	// Return the spaceship so it can be added to the world
+	// Return the spaceship
 	return mSpaceship;
 }
 
 void Asteroids::CreateAsteroids(const uint num_asteroids)
 {
-	shared_ptr<Shape> asteroid_shape = make_shared<Shape>("asteroid.shape");
-	for (uint i = 0; i < num_asteroids; i++) {
+	mAsteroidCount = num_asteroids;
+	for (uint i = 0; i < num_asteroids; i++)
+	{
+		Animation* anim_ptr = AnimationManager::GetInstance().GetAnimationByName("asteroid1");
+		shared_ptr<Sprite> asteroid_sprite
+			= make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
+		asteroid_sprite->SetLoopAnimation(true);
 		shared_ptr<GameObject> asteroid = make_shared<Asteroid>();
 		asteroids.push_back(asteroid);
 		asteroid->SetBoundingShape(make_shared<BoundingSphere>(asteroid->GetThisPtr(), 10.0f));
-		asteroid->SetShape(asteroid_shape);
+		asteroid->SetSprite(asteroid_sprite);
+		asteroid->SetScale(0.2f);
 		mGameWorld->AddObject(asteroid);
 	}
+
 }
 
 void Asteroids::CreateGUI()
@@ -360,13 +377,33 @@ void Asteroids::OnPlayerKilled(int lives_left)
 	if (lives_left < 1) {
 		ChangeState(GameState::GAME_OVER);
 	}
+	// explosion
+	shared_ptr<GameObject> explosion = CreateExplosion();
+	explosion->SetPosition(mSpaceship->GetPosition());
+	explosion->SetRotation(mSpaceship->GetRotation());
+	mGameWorld->AddObject(explosion);
 	// Format the lives left message using an string-based stream
 	std::ostringstream msg_stream;
 	msg_stream << "Lives: " << lives_left;
 	// Get the lives left message as a string
 	std::string lives_msg = msg_stream.str();
 	mLivesLabel->SetText(lives_msg);
+
+	SetTimer(1000, CREATE_NEW_PLAYER);
 }
+
+shared_ptr<GameObject> Asteroids::CreateExplosion()
+{
+	Animation* anim_ptr = AnimationManager::GetInstance().GetAnimationByName("explosion");
+	shared_ptr<Sprite> explosion_sprite =
+		make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
+	explosion_sprite->SetLoopAnimation(false);
+	shared_ptr<GameObject> explosion = make_shared<Explosion>();
+	explosion->SetSprite(explosion_sprite);
+	explosion->Reset();
+	return explosion;
+}
+
 
 // Menu Methods //////////////////////////
 
