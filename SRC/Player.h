@@ -31,6 +31,14 @@ public:
 		mListeners.push_back(listener);
 	}
 
+	void Player::AddLife() {
+		mLives++;
+	}
+
+	int Player::GetLives() {
+		return mLives;
+	}
+
 	void FirePlayerKilled()
 	{
 		// Send message to all listeners

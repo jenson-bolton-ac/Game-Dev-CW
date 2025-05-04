@@ -5,6 +5,7 @@
 #include "BlackHole.h"
 #include "BlackHoleBonus.h"
 #include "Explosion.h"
+#include "ExtraLifeBonus.h"
 #include "GameUtil.h"
 #include "GameWindow.h"
 #include "GameWorld.h"
@@ -308,12 +309,34 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 				std::make_shared<Shape>("square.shape")
 			);
 			mGameWorld->AddObject(bonus);
+		} 
+		else if ((rand() % 100) < 10) 
+		{  // 10% drop rate
+			auto bonus = std::make_shared<ExtraLifeBonus>(10000);
+			bonus->SetPosition(object->GetPosition());
+			// add to world immediately so shared_from_this() works
+			mGameWorld->AddObject(bonus);
+			// then set up collision & shape
+			bonus->SetBoundingShape(
+				std::make_shared<BoundingSphere>(bonus->GetThisPtr(), 5.0f)
+			);
+			bonus->SetShape(
+				std::make_shared<Shape>("triangle.shape")
+			);
 		}
 
 		mAsteroidCount--;
 		if (mAsteroidCount <= 0) {
-			SetTimer(500, START_NEXT_LEVEL);
+			SetTimer(500, START_NEXT_LEVEL);std::ostringstream msg_stream;
 		}
+	}
+
+	else if (object->GetType() == GameObjectType("ExtraLifeBonus")) {
+		mPlayer.AddLife(); std::ostringstream msg_stream;
+		msg_stream << "Lives: " << mPlayer.GetLives();
+		// Get the lives left message as a string
+		std::string lives_msg = msg_stream.str();
+		mLivesLabel->SetText(lives_msg);
 	}
 }
 

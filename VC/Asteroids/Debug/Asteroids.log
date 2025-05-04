@@ -1,5 +1,5 @@
 ﻿cl : command line  warning D9035: option 'Gm' has been deprecated and will be removed in a future release
-  Spaceship.cpp
+  Asteroids.cpp
 Asteroid.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
   Asteroids.vcxproj -> C:\Users\rodge\Desktop\GameTech\Game-Dev-CW\bin\Asteroids.exe
   ..\..\assets\01.png
@@ -13,4 +13,5 @@ Asteroid.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' sp
   ..\..\assets\spaceship_fs.png
   ..\..\assets\square.shape
   ..\..\assets\thruster.shape
-         11 file(s) copied.
+  ..\..\assets\triangle.shape
+         12 file(s) copied.
