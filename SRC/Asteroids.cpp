@@ -120,6 +120,12 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 			return;
 		}
 		break;
+	case GameState::SHOW_INSTRUCTIONS:
+		if (key == 13 || key == ' ') {
+			ChangeState(GameState::START_MENU);
+			return;
+		}
+		break;
 	default: break;
 	}
 }
@@ -264,6 +270,7 @@ void Asteroids::CreateAsteroids(const uint num_asteroids)
 	shared_ptr<Shape> asteroid_shape = make_shared<Shape>("asteroid.shape");
 	for (uint i = 0; i < num_asteroids; i++) {
 		shared_ptr<GameObject> asteroid = make_shared<Asteroid>();
+		asteroids.push_back(asteroid);
 		asteroid->SetBoundingShape(make_shared<BoundingSphere>(asteroid->GetThisPtr(), 10.0f));
 		asteroid->SetShape(asteroid_shape);
 		mGameWorld->AddObject(asteroid);
@@ -312,8 +319,16 @@ void Asteroids::OnPlayerKilled(int lives_left)
 	mLivesLabel->SetText(lives_msg);
 }
 
+// Menu Methods //////////////////////////
+
 void Asteroids::CreateStartMenu() {
-	CreateAsteroids(8);
+	// Remove any other menus
+	if (mMenuContainer) {
+		mGameDisplay->GetContainer()->RemoveComponent(mMenuContainer);
+	}
+	else {
+		CreateAsteroids(8);
+	}
 
 	mMenuContainer = make_shared<GUIContainer>();
 	mMenuContainer->SetSize(mGameDisplay->GetContainer()->GetSize());
@@ -376,11 +391,17 @@ void Asteroids::ActivateMenuItem(int index) {
 }
 
 void Asteroids::InitializeGameplay(shared_ptr<Asteroids> thisPtr) {
+	// Remove the main menu
 	if (mMenuContainer) {
 		mGameDisplay->GetContainer()->RemoveComponent(mMenuContainer);
 		mMenuContainer.reset();
 		mMenuLabels.clear();
 	}
+
+	for (auto& a : asteroids) {
+		mGameWorld->RemoveObject(a);
+	}
+	asteroids.clear(); // remove menu asteroids
 
 	mGameWorld->AddListener(&mScoreKeeper);
 	mScoreKeeper.AddListener(thisPtr);
@@ -396,9 +417,82 @@ void Asteroids::CreateGameOverMenu() {
 }
 
 void Asteroids::ShowHighScoreTable() {
-	// Add highscore table
+	// clear old GUI
+	mGameDisplay->GetContainer()->RemoveAllComponents();
+	if (mMenuContainer) {
+		mMenuContainer.reset();
+		mMenuLabels.clear();
+	}
+
+	// container framing
+	mMenuContainer = std::make_shared<GUIContainer>();
+	mMenuContainer->SetSize(mGameDisplay->GetContainer()->GetSize());
+	mMenuContainer->SetBorder({ 50,50 });
+	mGameDisplay->GetContainer()->AddComponent(mMenuContainer, { 0.0f,0.0f });
+
+	// header
+	auto header = std::make_shared<GUILabel>("High-Scores");
+	header->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	header->SetVerticalAlignment(GUIComponent::GUI_VALIGN_TOP);
+	mMenuContainer->AddComponent(header, { 0.5f, 0.9f });
+
+	// load and display the entries
+	auto scores = LoadHighScores();
+	for (int i = 0; i < 10; ++i) {
+		std::string text;
+		if (i < (int)scores.size()) {
+			text = std::to_string(i + 1) + ". "
+				+ scores[i].first + " – "
+				+ std::to_string(scores[i].second);
+		}
+		else {
+			text = std::to_string(i + 1) + ". ——";
+		}
+		auto lbl = std::make_shared<GUILabel>(text);
+		lbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+		lbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+		float y = 0.8f - i * 0.07f;
+		mMenuContainer->AddComponent(lbl, { 0.5f, y });
 }
 
 void Asteroids::ShowInstructions() {
-	// Add instuctions
+	// Remove the main menu but keep the asteroids
+	mGameDisplay->GetContainer()->RemoveComponent(mMenuContainer);
+
+	// Full screen container
+	mMenuContainer = make_shared<GUIContainer>();
+	mMenuContainer->SetSize(mGameDisplay->GetContainer()->GetSize());
+	mMenuContainer->SetBorder({ 50, 50 });
+	mGameDisplay->GetContainer()->AddComponent(mMenuContainer, { 0.0f, 0.0f });
+
+	// Instructions
+	vector<string> lines = {
+		"<-/-> to turn",
+		"^ to thrust",
+		"Space to shoot",
+		"Click or press Enter to select",
+		"(Press Esc to quit)"
+	};
+	float startY = 0.65f;
+	float deltaY = 0.06f;
+	for (int i = 0; i < (int)lines.size(); ++i) {
+		auto lbl = make_shared<GUILabel>(lines[i]);
+		lbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+		lbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+		float y = startY - i * deltaY;
+		mMenuContainer->AddComponent(lbl, { 0.5f, y });
+	}
+
+	// Back button
+	mMenuLabels.clear();
+	auto backLbl = std::make_shared<GUILabel>("Back");
+	backLbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	backLbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+	mMenuContainer->AddComponent(backLbl, { 0.5f, 0.2f });
+	mMenuLabels = vector<shared_ptr<GUILabel>>{ backLbl };
+
+
+	// Selection and higlighting
+	mMenuSelection = 0;
+	UpdateMenuHighlight();
 }

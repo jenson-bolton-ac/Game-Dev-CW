@@ -98,6 +98,8 @@ private:
 
 	// Menu handling ////////////////////
 
+	vector<shared_ptr<GameObject>> asteroids;
+
 	shared_ptr<GUIContainer> mMenuContainer;
 	vector<shared_ptr<GUILabel>> mMenuLabels;
 	int mMenuSelection = 0;
