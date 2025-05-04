@@ -11,6 +11,9 @@
 #include "BoundingSphere.h"
 #include "GUILabel.h"
 
+#include <fstream>
+#include <algorithm>
+
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
 /** Constructor. Takes arguments from command line, just in case. */
@@ -121,6 +124,12 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		}
 		break;
 	case GameState::SHOW_INSTRUCTIONS:
+		if (key == 13 || key == ' ') {
+			ChangeState(GameState::START_MENU);
+			return;
+		}
+		break;
+	case GameState::SHOWING_HIGHSCORES:
 		if (key == 13 || key == ' ') {
 			ChangeState(GameState::START_MENU);
 			return;
@@ -311,6 +320,10 @@ void Asteroids::OnScoreChanged(int score)
 
 void Asteroids::OnPlayerKilled(int lives_left)
 {
+	// Player is out of lives
+	if (lives_left < 1) {
+		ChangeState(GameState::GAME_OVER);
+	}
 	// Format the lives left message using an string-based stream
 	std::ostringstream msg_stream;
 	msg_stream << "Lives: " << lives_left;
@@ -416,10 +429,31 @@ void Asteroids::CreateGameOverMenu() {
 	// Add death screen
 }
 
+vector<pair<string, int>> Asteroids::LoadHighScores() const {
+	vector<pair<string, int>> results;
+	ifstream in("highscores.txt");
+	if (!in.is_open()) return results;
+
+	string tag;
+	int score;
+	while (in >> tag >> score) {
+		results.emplace_back(tag, score);
+	}
+	in.close();
+
+	// sort descending
+	sort(results.begin(), results.end(),
+		[](auto& a, auto& b) { return a.second > b.second; });
+
+	if (results.size() > 10)
+		results.resize(10);
+	return results;
+}
+
 void Asteroids::ShowHighScoreTable() {
 	// clear old GUI
-	mGameDisplay->GetContainer()->RemoveAllComponents();
 	if (mMenuContainer) {
+		mGameDisplay->GetContainer()->RemoveComponent(mMenuContainer);
 		mMenuContainer.reset();
 		mMenuLabels.clear();
 	}
@@ -453,6 +487,18 @@ void Asteroids::ShowHighScoreTable() {
 		lbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
 		float y = 0.8f - i * 0.07f;
 		mMenuContainer->AddComponent(lbl, { 0.5f, y });
+	}
+
+	// “Back” button
+	auto backLbl = std::make_shared<GUILabel>("Back");
+	backLbl->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	backLbl->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+	mMenuContainer->AddComponent(backLbl, { 0.5f, 0.05f });
+
+	// only this label is navigable
+	mMenuLabels = { backLbl };
+	mMenuSelection = 0;
+	UpdateMenuHighlight();
 }
 
 void Asteroids::ShowInstructions() {

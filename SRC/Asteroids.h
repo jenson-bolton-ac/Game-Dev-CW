@@ -107,6 +107,7 @@ private:
 
 	void UpdateMenuHighlight(); // Highlight all labels based on mMenuSelection
 	void ActivateMenuItem(int index); // Activate the currently selected menu item
+	vector<pair<string, int>> LoadHighScores() const;
 };
 
 #endif
